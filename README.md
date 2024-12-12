@@ -1,36 +1,100 @@
-VAE_Encder -> main purpose to decrease the number of featurres but increase the number of features 
+# Variational Autoencoder (VAE) with U-Net Integration
+
+This repository features a **Variational Autoencoder (VAE)** architecture integrated with a U-Net model, designed for image and text processing tasks. The project uses advanced methods like cross-attention and classifier-free guidance to achieve high-quality outputs.
+
+---
+
+## Key Components
+
+### VAE Encoder
+- Reduces the dimensionality of input features while enriching their representation.
+- Utilizes **Residual Blocks**, which consist of normalization and convolution layers for enhanced feature extraction.
+
+### VAE Decoder
+- Reconstructs the input data from the latent space created by the encoder.
+
+---
+
+## Main Architecture
+
+### Overview
+- The model incorporates a **VAE** for images and a **text encoder** (using a **CLIP encoder**) to embed text into a shared latent space.
+- The embedded text guides the U-Net during generation tasks.
+
+### U-Net Model
+- Symmetric design:
+  - **First Half**: Encoder reduces the size of the image.
+  - **Second Half**: Decoder reconstructs the output by expanding the encoded features.
+- **Enhancement**: Incorporates **prompt embeddings** from the text encoder using **cross-attention** to specify desired output characteristics.
+
+### Time Embedding
+- U-Net includes **time embeddings** to account for the noise level in the image at each step, ensuring accurate temporal noise reduction.
+
+---
+
+## Workflow
+
+### Training
+1. **Input**:
+   - **Image**: Processed through the VAE Encoder.
+   - **Text**: Embedded into the latent space using the CLIP encoder.
+2. **Noise Prediction**:
+   - The U-Net processes the image, text, and time embedding to predict noise.
+3. **Denoising**:
+   - The U-Net collaborates with the scheduler to iteratively remove noise from the image.
+4. **Output**:
+   - The final latent representation is passed to the VAE Decoder to reconstruct the image.
+
+### Inference
+- Demonstrates how the scheduler and U-Net collaborate:
+  1. Noise is detected and reduced iteratively by the U-Net and scheduler.
+  2. The process repeats until the image is fully denoised.
+  3. The clean latent representation is passed to the decoder to produce the output.
+
+---
+
+## Classifier-Free Guidance
+
+To improve output quality, **Classifier-Free Guidance** is applied using the formula:
+
+\[
+\text{output} = w \times (\text{output_conditioned} - \text{output_unconditioned}) + \text{output_unconditioned}
+\]
+
+### How It Works
+- **Two Inference Passes**:
+  1. One with the prompt (conditioned).
+  2. One without the prompt (unconditioned).
+- Combines outputs to generate results aligned with the input prompt.
+
+---
+
+## Example: Text-to-Image
+
+In a text-to-image generation task:
+1. Noise is added to the input image.
+2. The U-Net predicts and removes noise at each time step.
+3. The scheduler coordinates the denoising process by iteratively querying the U-Net.
+4. The denoised latent representation is decoded into the final image.
+
+---
+
+## Files and Structure
+
+- **`vae_encoder.py`**: Implementation of the VAE Encoder.
+- **`vae_residual_block.py`**: Residual block with normalization and convolution layers used in the encoder.
+- **`u_net.py`**: U-Net architecture with integrated cross-attention.
+- **`scheduler.py`**: Defines the noise scheduling process.
+- **`pipeline.py`**: Full pipeline for training and inference, showcasing how the scheduler and U-Net interact.
+
+---
+
+This repository provides a robust implementation of VAE with U-Net integration, supporting image and text-to-image generation tasks. Feedback is welcome!
 
 
-VAE_ResidualBlock -> this is block that consists of Normalizations and convalution and is used in VAE_Encoder
 
 
-Our models main architecture consists of the encoder decoder variational autoencoder for the images 
-
-also the text encoder tho the embeding space (Clip encoder) (this goes into the U-net model)
 
 
-IN our U-net we can see very big similarity with the encoder and the decoder , the bedinging of the U-net is very much similar to the 
-encoder and the second half to the decoder, becouse we are reduceing the size of the image3 at the begining and then extending it
-the main key difference is the fact that in the U-net we are also using the prompt embediding to thell what we want to get as a result in the end 
-And the best way to combine the image and prompt is by using CROSS ATTENTION
-
-becouse we need to give the u-net not only the image but also the time step at which it waws noisified , thats why we will pass in the time step as a time embedding 
-
-
-What we are going to do is take the noise, text and run them through the unet with accordance to time schedualer 
-
-
-in the inference we can see how the pipeline is built and while building it we can see how the schadualer works
-
-
-Classifier Free Guidance (Combine output)
-
-output = w * (output_conditioned - output_unconditioned) + output_unconditioned
-
-so we will inference form the model twise one with the prompt and one without
-
-
-for example in the text - to - image 
-we find the nose of the image with the help of the UNET, so basically we run our model throu the unet , it will detect the noise, and what schedualer does is it denoises the image, and every time we pass it to the schedualer we kinda ask it how much noise is in there and then we pass the image again to the begening of the unet, and again it detects the noise and pase it back to the schedualer and so on ....
-untill we finish this time steps , then once we finish we give it to the latent and then to the decoder
-see pipline.py
+Special thanks to the following repostiories
+https://github.com/hkproj/pytorch-stable-diffusion.git
