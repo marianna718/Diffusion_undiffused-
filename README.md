@@ -79,7 +79,7 @@ In a text-to-image generation task:
 
 ---
 
-## Files and Structure
+## Files and Structure (needs to be changed)
 
 - **`vae_encoder.py`**: Implementation of the VAE Encoder.
 - **`vae_residual_block.py`**: Residual block with normalization and convolution layers used in the encoder.
